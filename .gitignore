@@ -1,0 +1,5 @@
+# Ignore all bazel symlinks
+/bazel-*
+
+# Ignore CMake output folder
+/out/
