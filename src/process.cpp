@@ -15,8 +15,9 @@ void exit_with_perror(sdb::pipe& channel, std::string const& prefix) {
 }
 }  // namespace
 
-std::unique_ptr<sdb::process> sdb::process::launch(std::filesystem::path path,
-                                                   bool debug) {
+std::unique_ptr<sdb::process> sdb::process::launch(
+    std::filesystem::path path, bool debug,
+    std::optional<int> stdout_replacement) {
   pipe channel{/*close_on_exec=*/true};
   pid_t pid;
   if ((pid = fork()) < 0) {
@@ -25,6 +26,11 @@ std::unique_ptr<sdb::process> sdb::process::launch(std::filesystem::path path,
 
   if (pid == 0) {
     channel.close_read();
+    if (stdout_replacement) {
+      if (dup2(*stdout_replacement, STDOUT_FILENO) < 0) {
+        exit_with_perror(channel, "stdout replacement failed");
+      }
+    }
     sleep(2);
     if (debug && ptrace(PTRACE_TRACEME, 0, nullptr, nullptr) < 0) {
       exit_with_perror(channel, "Tracing failed");
