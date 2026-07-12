@@ -146,3 +146,15 @@ void sdb::process::write_user_area(std::size_t offset, std::uint64_t data) {
     error::send_errno("Could not write to user area");
   }
 }
+
+void sdb::process::write_fprs(const user_fpregs_struct& fprs) {
+  if (ptrace(PTRACE_SETFPREGS, pid_, nullptr, &fprs) < 0) {
+    error::send_errno("Could not write floating point registers");
+  }
+}
+
+void sdb::process::write_gprs(const user_regs_struct& gprs) {
+  if (ptrace(PTRACE_SETREGS, pid_, nullptr, &gprs) < 0) {
+    error::send_errno("Could not write general purpose registers");
+  }
+}
