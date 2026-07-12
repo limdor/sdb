@@ -4,6 +4,29 @@
 #include <libsdb/registers.hpp>
 #include <variant>
 
+namespace {
+template <class T>
+sdb::byte128 widen(const sdb::register_info& info, T t) {
+  if constexpr (std::is_floating_point_v<T>) {
+    if (info.format == sdb::register_format::double_float)
+      return sdb::to_byte128(static_cast<double>(t));
+    if (info.format == sdb::register_format::long_double)
+      return sdb::to_byte128(static_cast<long double>(t));
+  } else if constexpr (std::is_signed_v<T>) {
+    if (info.format == sdb::register_format::uint) {
+      switch (info.size) {
+        case 2:
+          return sdb::to_byte128(static_cast<std::int16_t>(t));
+        case 4:
+          return sdb::to_byte128(static_cast<std::int32_t>(t));
+        case 8:
+          return sdb::to_byte128(static_cast<std::int64_t>(t));
+      }
+    }
+  }
+  return sdb::to_byte128(t);
+}
+}  // namespace
 sdb::registers::value sdb::registers::read(const register_info& info) const {
   auto bytes = as_bytes(data_);
   if (info.format == register_format::uint) {
@@ -34,9 +57,10 @@ void sdb::registers::write(const register_info& info, value val) {
   auto bytes = as_bytes(data_);
   std::visit(
       [&](auto& v) {
-        if (sizeof(v) == info.size) {
-          auto val_bytes = as_bytes(v);
-          std::copy(val_bytes, val_bytes + sizeof(v), bytes + info.offset);
+        if (sizeof(v) <= info.size) {
+          auto wide = widen(info, v);
+          auto val_bytes = as_bytes(wide);
+          std::copy(val_bytes, val_bytes + info.size, bytes + info.offset);
         } else {
           std::cerr << "sdb::register::write called with mismatched register "
                        "and value sizes";
