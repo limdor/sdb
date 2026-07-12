@@ -43,11 +43,12 @@ TEST_CASE(
   REQUIRE(value != 0);
 }
 
-TEST_CASE("process::get_registers read x87 register after process attachement",
+TEST_CASE("process::get_registers write x87 register after process attachement",
           "[process]") {
   auto target = process::launch("targets/run_endlessly");
   auto& registers = target->get_registers();
-  auto value = registers.read_by_id_as<std::uint64_t>(register_id::st0);
+  const long double value_to_write = 42.0;
+  registers.write_by_id(register_id::st0, value_to_write);
 }
 
 TEST_CASE("process::get_registers write ah after process attachement",
