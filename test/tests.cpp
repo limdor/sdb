@@ -32,6 +32,31 @@ TEST_CASE("process::launch no such program", "[process]") {
   REQUIRE_THROWS_AS(process::launch("not_existing_program"), error);
 }
 
+TEST_CASE(
+    "process::get_registers read instruction pointer after process attachement",
+    "[process]") {
+  auto target = process::launch("targets/run_endlessly");
+  auto& registers = target->get_registers();
+  auto value = registers.read_by_id_as<std::uint64_t>(register_id::rip);
+  // We don't know what the value of the instruction pointer will be, but it
+  // should not be zero.
+  REQUIRE(value != 0);
+}
+
+TEST_CASE("process::get_registers read x87 register after process attachement",
+          "[process]") {
+  auto target = process::launch("targets/run_endlessly");
+  auto& registers = target->get_registers();
+  auto value = registers.read_by_id_as<std::uint64_t>(register_id::st0);
+}
+
+TEST_CASE("process::get_registers write ah after process attachement",
+          "[process]") {
+  auto target = process::launch("targets/run_endlessly");
+  auto& registers = target->get_registers();
+  registers.write_by_id(register_id::ah, std::uint8_t{42});
+}
+
 TEST_CASE("process::attach success", "[process]") {
   auto target = process::launch("targets/run_endlessly", false);
   auto proc = process::attach(target->pid());

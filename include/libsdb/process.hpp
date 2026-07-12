@@ -23,6 +23,9 @@ class process {
   process& operator=(const process&) = delete;
   ~process();
 
+  // Launch a new process and attach to it. If debug is true, the process will
+  // be launched in a stopped state, otherwise it will be launched in a running
+  // state.
   static std::unique_ptr<process> launch(std::filesystem::path path,
                                          bool debug = true);
   static std::unique_ptr<process> attach(pid_t pid);
