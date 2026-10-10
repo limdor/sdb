@@ -6,7 +6,7 @@ set_target_properties(
     PROPERTIES OUTPUT_NAME sdb
 )
 
-target_compile_features(libsdb PUBLIC cxx_std_17)
+target_compile_features(libsdb PUBLIC cxx_std_20)
 
 target_include_directories(libsdb
     PUBLIC
