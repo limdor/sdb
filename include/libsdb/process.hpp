@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <libsdb/registers.hpp>
+#include <libsdb/types.hpp>
 #include <memory>
 #include <optional>
 
@@ -44,6 +45,11 @@ class process {
 
   void write_fprs(const user_fpregs_struct& fprs);
   void write_gprs(const user_regs_struct& gprs);
+
+  virt_addr get_pc() const {
+    return virt_addr{
+        get_registers().read_by_id_as<std::uint64_t>(register_id::rip)};
+  }
 
  private:
   process(pid_t pid, bool terminate_on_end, bool is_attached)
