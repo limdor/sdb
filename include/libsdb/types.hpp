@@ -28,7 +28,7 @@ class virt_addr {
     addr_ -= offset;
     return *this;
   }
-  bool operator<=>(const virt_addr& other) const = default;
+  auto operator<=>(const virt_addr& other) const = default;
 
  private:
   std::uint64_t addr_;
