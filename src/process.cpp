@@ -164,3 +164,12 @@ void sdb::process::write_gprs(const user_regs_struct& gprs) {
     error::send_errno("Could not write general purpose registers");
   }
 }
+
+sdb::breakpoint_site& sdb::process::create_breakpoint_site(virt_addr address) {
+  if (breakpoint_sites_.contains_address(address)) {
+    error::send("Breakpoint site already created at address " +
+                std::to_string(address.addr()));
+  }
+  return breakpoint_sites_.push(
+      std::unique_ptr<breakpoint_site>(new breakpoint_site(*this, address)));
+}
