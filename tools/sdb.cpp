@@ -28,7 +28,9 @@ std::unique_ptr<sdb::process> attach(int argc, const char** argv) {
   // Passing program name
   else {
     const char* program_path = argv[1];
-    return sdb::process::launch(program_path);
+    auto proc = sdb::process::launch(program_path);
+    fmt::print("Launched process with PID {}\n", proc->pid());
+    return proc;
   }
 }
 std::vector<std::string> split(std::string_view str, char delimiter) {
@@ -83,6 +85,7 @@ void print_help(const std::vector<std::string>& args) {
     breakpoint  - Commands for operating on breakpoints
     continue    - Resume the process
     register    - Commands for operating on registers
+    step        - Step over a single instruction
     help        - Show this help message
 )";
   } else if (is_prefix(args[1], "register")) {
@@ -271,6 +274,9 @@ void handle_command(std::unique_ptr<sdb::process>& process,
     handle_register_command(*process, args);
   } else if (is_prefix(command, "breakpoint")) {
     handle_breakpoint_command(*process, args);
+  } else if (is_prefix(command, "step")) {
+    auto reason = process->step_instruction();
+    print_stop_reason(*process, reason);
   } else {
     std::cerr << "Unknown command\n";
   }
