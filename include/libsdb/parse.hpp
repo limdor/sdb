@@ -8,6 +8,7 @@
 #include <libsdb/error.hpp>
 #include <optional>
 #include <string_view>
+#include <vector>
 
 namespace sdb {
 template <class I>
@@ -60,6 +61,29 @@ auto parse_vector(std::string_view text) {
   c += 4;
   if (*c++ != ']') invalid();
   if (c != text.end()) invalid();
+  return bytes;
+}
+
+inline auto parse_vector(std::string_view text) {
+  auto invalid = [] { sdb::error::send("Invalid format"); };
+
+  std::vector<std::byte> bytes;
+  const char* c = text.data();
+
+  if (*c++ != '[') invalid();
+
+  while (*c != ']') {
+    auto byte = sdb::to_integral<std::byte>({c, 4}, 16);
+    bytes.push_back(byte.value());
+    c += 4;
+
+    if (*c == ',')
+      ++c;
+    else if (*c != ']')
+      invalid();
+  }
+  if (++c != text.end()) invalid();
+
   return bytes;
 }
 }  // namespace sdb
